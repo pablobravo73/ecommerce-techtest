@@ -2,35 +2,47 @@ version: '3.9'
 
 services:
   frontend:
-    image: techtest/frontend:latest
+    build:
+      context: frontend
+      target: development
     ports:
-      - 80:80
+      - 5173:5173
     stdin_open: true
     volumes:
       - ./frontend:/usr/src/app
       - /usr/src/app/node_modules
     restart: always
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     networks:
       - react-express
     depends_on:
       - backend
 
   backend:
-    image: techtest/backend:latest
     restart: always
+    build:
+      context: backend
+      target: development
+    ports:
+      - 3001:3001
+
+
     volumes:
       - ./backend:/usr/src/app
       - /usr/src/app/node_modules
     environment:
-      - NODE_ENV=production
-      - DB_HOST=database.example.com
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=myuser
       - DB_PASSWORD=mypassword
       - DB_NAME=mydatabase
+    depends_on:
+      - postgres
     networks:
       - react-express
+
 
   postgres:
     restart: always

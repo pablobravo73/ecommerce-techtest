@@ -1,43 +1,23 @@
-# Establecer la imagen base para desarrollo
-FROM node:18-alpine3.17 AS development
+# syntax=docker/dockerfile:1.4
 
-# Establecer el directorio de trabajo
+FROM node:18-bullseye AS development
+
+# Create app directory
 WORKDIR /usr/src/app
 
-# Copiar los archivos de configuración y dependencias del proyecto
-COPY package.json .
-COPY package-lock.json .
+COPY package.json /usr/src/app/package.json
+COPY package-lock.json /usr/src/app/package-lock.json
+RUN npm ci
 
-# Instalar todas las dependencias
-RUN npm install
+COPY . /usr/src/app
 
-# Copiar el código fuente de la aplicación
-COPY . .
+EXPOSE 3001
 
-# Exponer el puerto en el que la aplicación se ejecuta
-EXPOSE 3000
+CMD [ "npm", "start", "--host", "0.0.0.0"]
 
-# Establecer el entrypoint para el modo de desarrollo
-ENTRYPOINT ["npm", "run", "dev"]
+FROM development as dev-envs
+RUN apt-get update && apt-get install -y --no-install-recommends git
 
-# Establecer la imagen base para producción
-FROM node:18-alpine3.17 AS production
-
-# Establecer el directorio de trabajo
-WORKDIR /usr/src/app
-
-# Copiar los archivos de configuración y dependencias del proyecto
-COPY package.json .
-COPY package-lock.json .
-
-# Instalar solo las dependencias de producción
-RUN npm ci --only=production
-
-# Copiar el código fuente de la aplicación
-COPY . .
-
-# Exponer el puerto en el que la aplicación se ejecuta
-EXPOSE 3000
-
-# Establecer el entrypoint para el modo de producción
-ENTRYPOINT ["npm", "start"]
+# install Docker tools (cli, buildx, compose)
+COPY --from=gloursdocker/docker / /
+CMD ["node", "start", "--host", "0.0.0.0"]

@@ -1,36 +1,25 @@
-# Establecer la imagen base con Node.js
-FROM node:18-alpine3.17 AS development
+# syntax=docker/dockerfile:1.4
 
-# Establecer el directorio de trabajo
+# Create image based on the official Node image from dockerhub
+FROM node:18-bullseye AS development
+
+# Create app directory
 WORKDIR /usr/src/app
 
-# Copiar los archivos de configuración y dependencias del proyecto
-COPY package.json .
-COPY yarn.lock .
+# Copy dependency definitions
+COPY package.json /usr/src/app
+COPY package-lock.json /usr/src/app
 
-# Instalar las dependencias
-RUN yarn install
+# Install dependencies
+RUN npm ci
 
-# Copiar el código fuente de la aplicación
-COPY . .
+# Get all the code needed to run the app
+COPY . /usr/src/app
 
-# Compilar la aplicación para producción
-RUN yarn build
+# Expose the port the app runs in
+EXPOSE 5173
 
-# Establecer la imagen base para producción
-FROM node:18-alpine3.17 AS production
+# Serve the app
+#CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["npx", "vite", "--host", "0.0.0.0"]
 
-# Establecer el directorio de trabajo
-WORKDIR /usr/src/app
-
-# Copiar el directorio de salida de la compilación de Vite desde la etapa de desarrollo
-COPY --from=development /usr/src/app/dist ./dist
-
-# Instalar dependencias en producción (si es necesario)
-# RUN yarn install --production
-
-# Exponer el puerto en el que la aplicación se ejecuta (si es necesario)
-EXPOSE 3000
-
-# Definir el entrypoint
-ENTRYPOINT ["./entrypoint.sh"]
