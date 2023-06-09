@@ -17,7 +17,7 @@ module.exports = {
       },
       email: {
         type: Sequelize.STRING,
-        unique: true // Make the email column unique
+        unique: true 
       },
       role: {
         type: Sequelize.ENUM('comprador', 'admin'), 
