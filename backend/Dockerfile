@@ -1,23 +1,39 @@
-# syntax=docker/dockerfile:1.4
-
-FROM node:18-bullseye AS development
-
-# Create app directory
-WORKDIR /usr/src/app
-
-COPY package.json /usr/src/app/package.json
-COPY package-lock.json /usr/src/app/package-lock.json
-RUN npm ci
-
-COPY . /usr/src/app
+FROM node:18-bullseye AS base
 
 EXPOSE 3001
+#Adjust localtime to your needs
+#Set locale
+ENV DEBIAN_FRONTEND=noninteractive
 
-CMD [ "npm", "start", "--host", "0.0.0.0"]
+RUN   apt-get update && apt-get install -y --no-install-recommends \
+        locales \
+        tzdata \
+        ca-certificates \
+        libpq-dev \
+        && echo "America/Mazatlan" > /etc/timezone \
+        && dpkg-reconfigure -f noninteractive tzdata \
+        && sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen \
+        && echo 'LANG="en_US.UTF-8"'>/etc/default/locale \
+        && dpkg-reconfigure --frontend=noninteractive locales \
+        && update-locale LANG=en_US.UTF-8 \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-FROM development as dev-envs
-RUN apt-get update && apt-get install -y --no-install-recommends git
+RUN mkdir /home/node/app && chown -R node:node /home/node
 
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
-CMD ["node", "start", "--host", "0.0.0.0"]
+USER node
+
+WORKDIR /home/node/app
+
+COPY --chown=node:node package.json package-lock.json* ./
+
+ENV PATH=/home/node/app/node_modules/.bin:$PATH
+
+RUN npm install --no-optional && npm cache clean --force
+
+CMD ["npm", "run", "dev"]
+
+FROM base as prod
+
+COPY --chown=node:node . ./
+
+CMD ["npm", "run", "start"]

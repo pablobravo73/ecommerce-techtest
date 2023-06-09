@@ -1,10 +1,14 @@
-const { DB } = require("./config");
-const { Sequelize } = require("sequelize");
+const { DB } = require('./config');
+const { Sequelize } = require('sequelize');
+const pg = require('pg');
 
-// DB conection
-const db = new Sequelize(DB.NAME, DB.USER, DB.PASSWORD, {
-    host: DB.HOST,
-    dialect: DB.DIALECT,
+const db = new Sequelize({
+  database: 'mydatabase',
+  username: 'myuser',
+  password: 'mypassword',
+  host: 'postgres',
+  port: 5432,
+  dialect: 'postgres',
 });
 
 module.exports = { db };
