@@ -1,5 +1,3 @@
-
-
 const InventoryItem = require('../models/InventoryItem');
 
 
@@ -20,9 +18,24 @@ exports.getAllItems = async (req, res) => {
 exports.addItem = async (req, res) => {
   try {
     const { productName, sku, quantity } = req.body;
+    const { image } = req.files; 
+
+        if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Acceso no autorizado' });
+    }
 
     
-    await InventoryItem.create({ productName, sku, quantity });
+    const newItem = await InventoryItem.create({ productName, sku, quantity });
+
+    
+    if (image) {
+      const imagePath = `/uploads/${image.name}`;
+      newItem.image = imagePath;
+      await newItem.save();
+
+      
+      await image.mv(`./public${imagePath}`);
+    }
 
     
     res.json({ message: 'Elemento agregado al inventario' });
@@ -38,6 +51,10 @@ exports.deleteItem = async (req, res) => {
     const itemId = req.params.itemId;
 
     
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Acceso no autorizado' });
+    }
+
     
     const item = await InventoryItem.findByPk(itemId);
     if (!item) {
@@ -54,4 +71,3 @@ exports.deleteItem = async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor' });
   }
 };
-
