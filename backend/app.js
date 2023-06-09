@@ -12,14 +12,7 @@ const app = express();
 //const app = express();
 //const cors = require("cors");
 
-const { Pool } = require('pg')
-const pool = new Pool({
-  user: 'myuser',
-  host: 'postgres',
-  database: 'mydatabase',
-  password: 'mypassword',
-  port: 5432,
-})
+
 
 app.get('/users', async (req, res) => {
     try {
