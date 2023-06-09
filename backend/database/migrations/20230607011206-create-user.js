@@ -16,10 +16,12 @@ module.exports = {
         type: Sequelize.STRING
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        unique: true // Make the email column unique
       },
       role: {
-        type: Sequelize.STRING
+        type: Sequelize.ENUM('comprador', 'admin'), 
+        defaultValue: 'comprador' 
       },
       createdAt: {
         allowNull: false,
