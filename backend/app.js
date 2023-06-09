@@ -14,14 +14,8 @@ const app = express();
 
 
 
-app.get('/users', async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT * FROM users');
-        res.json(rows);
-    } catch (error) {
-        console.log(error);
-    }
-});
+
+
 
 
 const HOST = '0.0.0.0';
